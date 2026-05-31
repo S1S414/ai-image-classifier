@@ -26,8 +26,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制项目文件
 COPY . .
 
-# 安装 GroundingDINO 本地源码（--no-deps 避免覆盖已装好的版本）
-RUN cd GroundingDINO && pip install --no-cache-dir --no-deps .
+# 安装 GroundingDINO 本地源码（--no-deps 避免覆盖已装好的版本，--no-build-isolation 确保能找到 torch）
+RUN cd GroundingDINO && pip install --no-cache-dir --no-build-isolation --no-deps .
 
 # 创建必要目录
 RUN mkdir -p uploads weights models
