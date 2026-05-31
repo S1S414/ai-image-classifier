@@ -1,0 +1,40 @@
+# 敏感文件
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# 虚拟环境
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 上传文件
+uploads/*
+!uploads/.gitkeep
+
+# 模型权重文件（太大，云端启动时自动下载）
+weights/*.pth
+*.pt
+!weights/
+
+# GroundingDINO 示例图片（部署不需要）
+GroundingDINO/.asset/
+
+# 其他二进制资源（部署不需要）
+*.pth
+*.pt

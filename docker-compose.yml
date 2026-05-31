@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  detection-api:
+    build: .
+    container_name: object-detection-api
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5000
+      - FLASK_DEBUG=False
+      - BOX_THRESHOLD=0.35
+      - TEXT_THRESHOLD=0.25
+    volumes:
+      # 挂载本地模型权重（如果已有）
+      - ./weights:/app/weights
+      # 挂载上传目录持久化
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # GPU 版本需要 nvidia-container-toolkit
+  # 支持 CUDA 容器化部署

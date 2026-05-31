@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+ENV/
+env/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 模型权重（建议挂载 volumes）
+*.pt
+*.pth
+
+# 日志
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.cache
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/

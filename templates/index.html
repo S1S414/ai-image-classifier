@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>目标检测系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #D3DFDD 0%, #A6C9CE 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #0E4D66;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #727665;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            background: #f0f5f4;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #66AAB7;
+            border-radius: 15px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f0f8f7;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            border-color: #9DD2C7;
+            background: #e8f5f3;
+            transform: translateY(-2px);
+        }
+        
+        .upload-area.dragover {
+            border-color: #66AAB7;
+            background: #dff0ed;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            color: #727665;
+            font-size: 16px;
+        }
+        
+        .upload-text span {
+            color: #66AAB7;
+            font-weight: 600;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .result-image-container {
+            display: none;
+            margin-bottom: 20px;
+            background: #f5f7f6;
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid #D3DFDD;
+        }
+        
+        .result-image-container.show {
+            display: block;
+        }
+        
+        .result-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(14, 77, 102, 0.15);
+        }
+        
+        .detect-btn {
+            display: none;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #66AAB7 0%, #9DD2C7 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .detect-btn.show {
+            display: block;
+        }
+        
+        .detect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 170, 183, 0.4);
+        }
+        
+        .detect-btn:disabled {
+            background: #A6C9CE;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #D3DFDD;
+            border-top: 4px solid #66AAB7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            display: none;
+            padding: 15px;
+            background: #fde8e8;
+            border-radius: 10px;
+            color: #857B74;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        .results-panel {
+            display: none;
+        }
+        
+        .results-panel.show {
+            display: block;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #D3DFDD;
+        }
+        
+        .results-header h3 {
+            color: #0E4D66;
+            font-size: 18px;
+        }
+        
+        .count-badge {
+            background: linear-gradient(135deg, #66AAB7 0%, #9DD2C7 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .detections-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .detection-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+            border: 1px solid #D3DFDD;
+        }
+        
+        .detection-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .detection-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        
+        .detection-info {
+            flex: 1;
+        }
+        
+        .detection-class {
+            font-weight: 600;
+            color: #727665;
+            font-size: 15px;
+        }
+        
+        .detection-conf {
+            font-size: 13px;
+            color: #857B74;
+            margin-top: 3px;
+        }
+        
+        .conf-bar {
+            width: 100px;
+            height: 6px;
+            background: #D3DFDD;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-left: 15px;
+        }
+        
+        .conf-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #66AAB7, #9DD2C7);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #857B74;
+        }
+        
+        .empty-state-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #D3DFDD;
+        }
+        
+        .feature-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+            color: #727665;
+            font-size: 13px;
+        }
+        
+        .feature-icon {
+            font-size: 24px;
+        }
+        
+        .supported-formats {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #857B74;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 目标检测系统</h1>
+        <p class="subtitle">基于 Grounding DINO 开放词汇检测模型，支持自定义检测目标</p>
+        
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📷</div>
+                    <p class="upload-text">
+                        拖拽图像到此处，或 <span>点击选择文件</span>
+                    </p>
+                </div>
+                
+                <input type="file" id="fileInput" accept="image/*">
+                
+                <div class="result-image-container" id="resultContainer">
+                    <img id="resultImage" class="result-image" alt="检测结果">
+                </div>
+                
+                <button class="detect-btn" id="detectBtn">🔍 开始检测</button>
+                
+                <div class="prompt-section" style="margin-top: 12px;">
+                    <label for="promptInput" style="font-size: 13px; color: #666; display: block; margin-bottom: 6px;">✏️ 自定义检测目标（用英文句号 . 分隔，留空使用默认 80 类）</label>
+                    <input type="text" id="promptInput" placeholder="例: penguin . fish . shark . whale （留空 = 自动检测 80 类常见物体）" style="width: 100%; padding: 10px 14px; border: 2px solid #D3DFDD; border-radius: 10px; font-size: 14px; transition: border-color 0.2s; outline: none;" onfocus="this.style.borderColor='#66AAB7'" onblur="this.style.borderColor='#D3DFDD'">
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>正在检测中...</p>
+                </div>
+                
+                <div class="error" id="error"></div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="results-panel" id="resultsPanel">
+                    <div class="results-header">
+                        <h3>📋 检测结果</h3>
+                        <span class="count-badge" id="countBadge">0 个物体</span>
+                    </div>
+                    <div class="detections-list" id="detectionsList"></div>
+                </div>
+                
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-icon">🧐</div>
+                    <p>上传图片查看检测结果</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature-item">
+                <span class="feature-icon">🚀</span>
+                <span>Grounding DINO</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📊</span>
+                <span>开放词汇</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🎯</span>
+                <span>80+ 类别</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">💻</span>
+                <span>CPU 运行</span>
+            </div>
+        </div>
+        
+        <p class="supported-formats">支持格式: JPG, PNG, WEBP</p>
+    </div>
+    
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultImage = document.getElementById('resultImage');
+        const detectBtn = document.getElementById('detectBtn');
+        const loading = document.getElementById('loading');
+        const resultsPanel = document.getElementById('resultsPanel');
+        const detectionsList = document.getElementById('detectionsList');
+        const countBadge = document.getElementById('countBadge');
+        const emptyState = document.getElementById('emptyState');
+        const errorDiv = document.getElementById('error');
+        
+        let selectedFile = null;
+        let detectionResults = null;
+        
+        // 点击上传区域
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        // 文件选择
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        // 处理文件
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('请上传图像文件');
+                return;
+            }
+            
+            selectedFile = file;
+            detectionResults = null;
+            
+            // 显示预览
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                resultImage.src = e.target.result;
+                resultContainer.classList.add('show');
+                detectBtn.classList.add('show');
+                resultsPanel.classList.remove('show');
+                emptyState.style.display = 'block';
+                errorDiv.classList.remove('show');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // 检测按钮
+        detectBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            
+            detectBtn.disabled = true;
+            detectBtn.textContent = '检测中...';
+            loading.classList.add('show');
+            resultsPanel.classList.remove('show');
+            emptyState.style.display = 'none';
+            errorDiv.classList.remove('show');
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            // 附带自定义提示词
+            const promptInput = document.getElementById('promptInput');
+            const customPrompt = promptInput.value.trim();
+            if (customPrompt) {
+                formData.append('prompt', customPrompt);
+            }
+            
+            try {
+                const response = await fetch('/detect', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 显示结果图像
+                    resultImage.src = 'data:image/jpeg;base64,' + data.image;
+                    detectionResults = data.detections;
+                    
+                    // 显示检测列表
+                    displayDetections(data.detections, data.count);
+                } else {
+                    showError(data.error || '检测失败');
+                    emptyState.style.display = 'block';
+                }
+            } catch (err) {
+                showError('网络错误，请检查服务是否启动');
+                emptyState.style.display = 'block';
+            } finally {
+                detectBtn.disabled = false;
+                detectBtn.textContent = '🔍 开始检测';
+                loading.classList.remove('show');
+            }
+        });
+        
+        // 显示检测结果
+        function displayDetections(detections, count) {
+            countBadge.textContent = `${count} 个物体`;
+            
+            if (detections.length === 0) {
+                detectionsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>未检测到任何物体</p>
+                    </div>
+                `;
+            } else {
+                detectionsList.innerHTML = '';
+                
+                // 类别图标映射
+                const icons = {
+                    'penguin': '🐧', 'fish': '🐟', 'shark': '🦈', 'whale': '🐋', 'dolphin': '🐬',
+                    'rabbit': '🐰', 'frog': '🐸', 'snake': '🐍', 'turtle': '🐢', 'lizard': '🦎',
+                    'butterfly': '🦋', 'spider': '🕷️', 'ant': '🐜', 'bee': '🐝', 'ladybug': '🐞',
+                    'octopus': '🐙', 'crab': '🦀', 'lobster': '🦞', 'shrimp': '🦐', 'squid': '🦑',
+                    'mushroom': '🍄', 'flower': '🌸', 'tree': '🌳', 'cactus': '🌵',
+                    'person': '👤', 'car': '🚗', 'dog': '🐕', 'cat': '🐱',
+                    'bicycle': '🚲', 'motorcycle': '🏍️', 'bus': '🚌', 'truck': '🚚',
+                    'bird': '🐦', 'horse': '🐴', 'sheep': '🐑', 'cow': '🐄',
+                    'elephant': '🐘', 'bear': '🐻', 'zebra': '🦓', 'giraffe': '🦒',
+                    'backpack': '🎒', 'umbrella': '☂️', 'handbag': '👜', 'tie': '👔',
+                    'suitcase': '🧳', 'frisbee': '🥏', 'skis': '🎿', 'snowboard': '🏂',
+                    'sports ball': '⚽', 'kite': '🪁', 'baseball bat': '🏏', 'baseball glove': '🧤',
+                    'skateboard': '🛹', 'surfboard': '🏄', 'tennis racket': '🎾', 'bottle': '🍾',
+                    'wine glass': '🍷', 'cup': '☕', 'fork': '🍴', 'knife': '🔪',
+                    'spoon': '🥄', 'bowl': '🥣', 'banana': '🍌', 'apple': '🍎',
+                    'sandwich': '🥪', 'orange': '🍊', 'broccoli': '🥦', 'carrot': '🥕',
+                    'pizza': '🍕', 'donut': '🍩', 'cake': '🎂', 'chair': '🪑',
+                    'couch': '🛋️', 'potted plant': '🪴', 'bed': '🛏️', 'dining table': '🍽️',
+                    'toilet': '🚽', 'tv': '📺', 'laptop': '💻', 'mouse': '🖱️',
+                    'remote': '📱', 'keyboard': '⌨️', 'cell phone': '📱', 'microwave': '📡',
+                    'oven': '🔥', 'toaster': '🍞', 'sink': '🚰', 'refrigerator': '🧊',
+                    'book': '📖', 'clock': '🕐', 'vase': '🏺', 'scissors': '✂️',
+                    'teddy bear': '🧸', 'hair drier': '💨', 'toothbrush': '🪥'
+                };
+                
+                detections.forEach((det, index) => {
+                    const icon = icons[det.class.toLowerCase()] || '📦';
+                    const confWidth = det.confidence;
+                    
+                    const item = document.createElement('div');
+                    item.className = 'detection-item';
+                    item.innerHTML = `
+                        <div class="detection-icon" style="background: linear-gradient(135deg, #66AAB7 0%, #9DD2C7 100%); color: white;">
+                            ${icon}
+                        </div>
+                        <div class="detection-info">
+                            <div class="detection-class">${det.class}</div>
+                            <div class="detection-conf">置信度: ${det.confidence}%</div>
+                        </div>
+                        <div class="conf-bar">
+                            <div class="conf-bar-fill" style="width: ${confWidth}%;"></div>
+                        </div>
+                    `;
+                    
+                    detectionsList.appendChild(item);
+                });
+            }
+            
+            resultsPanel.classList.add('show');
+        }
+        
+        // 显示错误
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+    </script>
+</body>
+</html>

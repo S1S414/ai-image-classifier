@@ -1,0 +1,19 @@
+# Web 框架
+Flask==3.0.0
+werkzeug==3.0.1
+python-dotenv==1.0.0
+
+# 深度学习框架
+torch==2.1.0
+torchvision==0.16.0
+
+# YOLOv8
+ultralytics==8.0.200
+
+# 图像处理
+Pillow==10.1.0
+opencv-python==4.8.1.78
+
+# Grounding DINO 依赖
+# numpy 需要 <2.0 以兼容 transformers/scipy 等依赖
+numpy>=1.23.0,<2.0
