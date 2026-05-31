@@ -3,8 +3,12 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# 安装系统依赖
+# 安装系统依赖（含编译工具）
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    python3-dev \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
@@ -21,6 +25,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制项目文件
 COPY . .
+
+# 安装 GroundingDINO 本地源码（需要先装好 torch 才能编译）
+RUN cd GroundingDINO && pip install --no-cache-dir .
 
 # 创建必要目录
 RUN mkdir -p uploads weights models
