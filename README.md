@@ -1,3 +1,13 @@
+---
+title: AI Image Classifier
+emoji: 🎯
+colorFrom: green
+colorTo: blue
+sdk: docker
+app_file: app.py
+pinned: false
+---
+
 # 目标检测系统（双模型版）
 
 基于深度学习的目标检测系统，支持 **YOLOv8** + **Grounding DINO** 双模型，集成 GPU 加速与开放词汇检测能力。
@@ -21,36 +31,48 @@ YOLOv8 在 COCO 80 类上又快又准，但如果你要检测"外卖箱""安全�
 
 | 平台 | 链接 |
 |:---|:---|
-| **GitHub** | [github.com/S1S414/image-classifier-demo](https://github.com/S1S414/image-classifier-demo) |
-| **在线 Demo** | [hf.co/spaces/S1S414/image-classifier-demo](https://hf.co/spaces/S1S414/image-classifier-demo) |
+| **GitHub** | [github.com/S1S414/ai-image-classifier](https://github.com/S1S414/ai-image-classifier) |
+| **在线 Demo** | [hf.co/spaces/S1S414/ai-image-classifier](https://hf.co/spaces/S1S414/ai-image-classifier) |
 
 ---
 
-## 快速启动
+## 运行指南
 
-### 最简单方式：双击 start.bat
+### 1. 克隆项目
 
-直接双击 `start.bat` 文件即可启动服务。
+```bash
+git clone https://github.com/S1S414/ai-image-classifier.git
+cd ai-image-classifier
+```
 
-### 手动启动
+### 2. 安装依赖
 
-```powershell
-cd d:\program\0429\AIProjects\project3_image_classifier
+```bash
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple --user
+```
+
+### 3. 配置环境
+
+项目无需 API Key。如需调整检测阈值，修改 `.env`：
+
+```env
+BOX_THRESHOLD=0.35
+TEXT_THRESHOLD=0.25
+```
+
+### 4. 启动服务
+
+**Windows：** 双击 `start.bat`
+
+**手动启动：**
+```bash
 python app.py
 ```
 
-### 访问地址
+访问 `http://localhost:5000`
 
-- **本地**：`http://localhost:5000`
-- **局域网**：`http://你的电脑IP:5000`（手机同 WiFi 可访问）
-
-### 分享给其他人
-
-| 方式 | 说明 |
-|:---|:---|
-| ngrok 内网穿透 | `ngrok http 5000` 生成公网链接 |
-| Docker 云部署 | `docker-compose up -d` 部署到服务器 |
-| HuggingFace Spaces | 推仓库后自动部署 |
+- 不填提示词 → 使用 YOLOv8 检测 COCO 80 类
+- 填写提示词（如 `helmet . vest`）→ 使用 Grounding DINO 检测任意物体
 
 ---
 
@@ -495,17 +517,5 @@ python app.py
 - 最低：GTX 1060 6GB
 - 依赖：CUDA 11.x + cuDNN
 
-## 适合岗位
 
-- 计算机视觉工程师
-- AI 算法工程师
-- 深度学习工程师
-- 图像处理工程师
 
-## 项目亮点
-
-1. 双模型架构实战经验（YOLOv8 + Grounding DINO）
-2. GPU 加速部署与 CUDA 优化
-3. 开放词汇目标检测能力
-4. Web 服务化与 API 开发
-5. CV 领域核心技能展示
