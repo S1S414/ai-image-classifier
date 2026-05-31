@@ -305,6 +305,9 @@ def handle_detect():
                 return jsonify({'error': f'提示词过长，最多 {MAX_PROMPT_LENGTH} 字符'}), 400
             
             # ===== 双模型策略 =====
+            if not _models_ready:
+                return jsonify({'error': '模型正在加载中，请稍后再试', 'status': 'loading'}), 503
+                
             if custom_prompt is None or custom_prompt == '':
                 # 空提示词 → 使用 YOLOv8 (GPU) 检测 COCO 80 类
                 print(f"[{request_id}] 🔵 使用 YOLOv8 (GPU) 检测 COCO 80 类")
@@ -399,18 +402,31 @@ def load_yolo():
 def health():
     """健康检查"""
     return jsonify({
-        'status': 'ok',
+        'status': 'ok' if _models_ready else 'loading',
         'models': {
             'grounding_dino': model is not None,
             'yolov8': yolo_model is not None
-        }
+        },
+        'ready': _models_ready
     })
 
 
-if __name__ == '__main__':
-    # 加载模型
-    load_models()
+# 启动时后台加载模型（不阻塞 gunicorn 启动，HF 健康检查要求 30min 内就绪）
+import threading
+_models_ready = False
 
+def _background_load_models():
+    global _models_ready
+    try:
+        load_models()
+        _models_ready = True
+        print("✅ 所有模型后台加载完成")
+    except Exception as e:
+        print(f"❌ 模型后台加载失败: {e}")
+
+threading.Thread(target=_background_load_models, daemon=True).start()
+
+if __name__ == '__main__':
     # 启动服务（兼容 HuggingFace Spaces / Render / 本地）
     host = os.getenv('FLASK_HOST', '0.0.0.0')
     port = int(os.getenv('PORT', os.getenv('FLASK_PORT', 5000)))

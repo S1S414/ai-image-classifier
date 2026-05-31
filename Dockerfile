@@ -32,13 +32,13 @@ RUN cd GroundingDINO && pip install --no-cache-dir --no-build-isolation --no-dep
 # 创建必要目录
 RUN mkdir -p uploads weights models
 
-# 暴露端口
-EXPOSE 5000
+# 暴露端口（HF Spaces 默认代理 7860）
+EXPOSE 7860
 
 # 环境变量
 ENV FLASK_HOST=0.0.0.0
-ENV FLASK_PORT=5000
+ENV FLASK_PORT=7860
 ENV FLASK_DEBUG=False
 
-# 启动命令
-CMD ["python", "app.py"]
+# 启动命令（使用 gunicorn 生产服务器，自动读取 HF Spaces 的 $PORT）
+CMD sh -c "gunicorn --bind 0.0.0.0:${PORT:-7860} --workers 1 --timeout 300 app:app"
