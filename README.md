@@ -1,3 +1,13 @@
+---
+title: AI Image Classifier
+emoji: 🎯
+colorFrom: green
+colorTo: blue
+sdk: docker
+app_file: app.py
+pinned: false
+---
+
 # 🎯 目标检测系统（双模型版）
 
 基于深度学习的目标检测系统，支持 **YOLOv8** + **Grounding DINO** 双模型，集成 GPU 加速与开放词汇检测能力。
